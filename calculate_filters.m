@@ -164,7 +164,7 @@ semilogy(wl,t_cleanup.*t_dichroic.*t_block.*a_led,'r');
 
 title('OD block of light source to PMT');
 grid on;
-legend('total blocking','cleanup','dichroic','blocking','LED trough block');
+legend('total blocking','cleanup','dichroic','blocking','LED','LED trough block');
 
 
 subplot(223);  hold on;  grid on;
