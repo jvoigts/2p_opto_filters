@@ -56,6 +56,25 @@ spectra(3).wl=wl;
 spectra(3).a=a;
 spectra(3).label='jaws';
 
+%% make MRuby spectrum
+I= imread('mruby_spectrum.png');
+figure(1); clf; 
+plot(350,0);
+hold on;
+image([193,840],[-.16,1.16],flipud(I));
+
+
+wl=[300, 500, 550, 555,562 ,575, 585,590,595,600,605,609,612,620,630,640,655,667,683,700,720,740,755,800,900];
+a=[0, 0, 0.01,0.02,0.05 ,0.5,0.82,0.92,0.98,1,1,0.98,0.96,0.87,0.75,0.6,0.4,0.3,0.2,0.13,0.08,0.05,0.04,0.01,0];
+
+
+plot(wl,a,'r-','LineWidth',2);
+a=a./max(a);
+
+spectra(4).wl=wl;
+spectra(4).a=a;
+spectra(4).label='jaws';
+
 %% load filter spectra
 filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01'};
 
@@ -109,12 +128,12 @@ subplot(222);
 semilogy(wl,t_cleanup.*t_dichroic.*t_block,'k');
 hold on;
 semilogy(wl,t_cleanup,'r');
-title('OD clock of light source to PMT');
+title('OD block of light source to PMT');
 grid on;
 legend('total blocking','cleanup filter');
 
 
-subplot(223);  hold on;
+subplot(223);  hold on;  grid on;
 title('gcamp trough blocking & dichroic');
 a_gcamp=interp1(spectra(1).wl,spectra(1).a,wl);
 plot(wl,a_gcamp,'r');
@@ -127,18 +146,29 @@ text(700,0.5,num2str(sum(gcamp_e)./sum(a_gcamp)));
 
 legend('GCaMP spectrum','GCaMP efficiency','blocking filter','dichroic');
 
-subplot(224);  hold on;
+subplot(224);  hold on;  grid on;
 title('rcamp trough blocking & dichroic');
 a_rcamp=interp1(spectra(2).wl,spectra(2).a,wl);
-plot(wl,a_rcamp,'r');
+a_mruby=interp1(spectra(4).wl,spectra(4).a,wl);
+plot(wl,a_rcamp,'r--');
+plot(wl,a_mruby,'r');
+
 rcamp_e=a_rcamp.*t_block.*t_dichroic;
 rcamp_e(isnan(rcamp_e))=0;
-plot(wl,rcamp_e,'k','LineWidth',1.5);
+
+mruby_e=a_mruby.*t_block.*t_dichroic;
+mruby_e(isnan(mruby_e))=0;
+
+
+plot(wl,rcamp_e,'k--','LineWidth',1.5);
+plot(wl,mruby_e,'k','LineWidth',1.5);
+
 plot(wl,t_block,'b');
 plot(wl,t_dichroic,'b--');
-text(700,0.5,num2str(sum(rcamp_e)./sum(a_rcamp)));
+text(700,0.4,num2str(sum(rcamp_e)./sum(a_rcamp)));
+text(700,0.3,num2str(sum(mruby_e)./sum(a_mruby)));
 plot(wl,jaws_e,'r','LineWidth',1.5);
-legend('RCaMP spectrum','RCaMP efficiency','blocking filter','dichroic','JAWs efficiency');
+legend('Mruby spectrum','RCaMP spectrum','mRuby efficiency','RCaMP efficiency','blocking filter','dichroic','JAWs efficiency');
 
 saveas(gcf,'filter_overview.png')
 
