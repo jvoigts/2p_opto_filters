@@ -84,7 +84,7 @@ delimiter = '\t';
 startRow = 5;
 formatSpec = '%f%f%[^\n\r]';
 fileID = fopen(filename,'r');
-dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'TextType', 'string', 'EmptyValue', NaN, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'EmptyValue', NaN, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
 fclose(fileID);
 
 if (min(dataArray{1})>300)
@@ -105,10 +105,11 @@ wl=linspace(300,900,100);
 
 a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
 f_cleanup=5;
-t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl);
+t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).^1;
 plot(wl,a_jaws,'r');
 
 plot(wl,t_cleanup,'b');
+
 
 f_dichroic=6;
 t_dichroic=interp1(filters(f_dichroic).wl,filters(f_dichroic).a,wl);
@@ -119,7 +120,7 @@ plot(wl,t_dichroic,'b--');
 text(700,0.5,num2str(sum(jaws_e)./sum(a_jaws)));
 
 f_block=3;
-t_block=interp1(filters(f_block).wl,filters(f_block).a,wl).^2;
+t_block=interp1(filters(f_block).wl,filters(f_block).a,wl).^1;
 plot(wl,t_block,'b');
 plot(wl,jaws_e,'k','LineWidth',1.5);
 legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs efficiency');
@@ -127,7 +128,9 @@ legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs effic
 subplot(222); 
 semilogy(wl,t_cleanup.*t_dichroic.*t_block,'k');
 hold on;
-semilogy(wl,t_cleanup,'r');
+semilogy(wl,t_cleanup,'b');
+semilogy(wl,t_dichroic,'b--');
+semilogy(wl,t_block,'b');
 title('OD block of light source to PMT');
 grid on;
 legend('total blocking','cleanup filter');
