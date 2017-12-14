@@ -89,7 +89,7 @@ leds(2).a=M(:,2);
 leds(2).label='M625L3';
 
 %% load filter spectra
-filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01','FF614-SDi01','BSP01-633R','FF01-550_88'};
+filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01','FF614-SDi01','BSP01-633R','FF01-550_88','NF03-594E'};
 
 figure(3); clf; hold on;
 nrows=3;
@@ -129,7 +129,12 @@ a_led=interp1(leds(f_led).wl,leds(f_led).a,wl);
 
 a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
 f_cleanup=5;
-t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).^1;
+t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl);
+
+if 0
+f_cleanup_b=10; % throw in another stop line filter?
+t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).*interp1(filters(f_cleanup_b).wl,filters(f_cleanup_b).a,wl);
+end;
 plot(wl,a_jaws,'r');
 plot(wl,t_cleanup,'b');
 
