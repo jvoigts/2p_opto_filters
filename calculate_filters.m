@@ -75,10 +75,27 @@ spectra(4).wl=wl;
 spectra(4).a=a;
 spectra(4).label='jaws';
 
-%% load filter spectra
-filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01'};
+%% load LED spectra
 
+M=csvread('M617L3-C_Data.csv');
+leds(1).wl=M(:,1);
+leds(1).a=M(:,2);
+leds(1).label='M617L3';
+
+
+M=csvread('M625L3-C_Data.csv');
+leds(2).wl=M(:,1);
+leds(2).a=M(:,2);
+leds(2).label='M625L3';
+
+%% load filter spectra
+filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01','FF614-SDi01','BSP01-633R','FF01-550_88'};
+
+figure(3); clf; hold on;
+nrows=3;
 for i=1:numel(filternames)
+    subplot(nrows,ceil(numel(filternames)/nrows),i);
+    
 filename = [filternames{i},'_Spectrum.txt'];
 delimiter = '\t';
 startRow = 5;
@@ -94,6 +111,9 @@ end;
 filters(i).wl=dataArray{1};
 filters(i).a=dataArray{2};
 filters(i).label=filternames{i}; 
+semilogy(filters(i).wl,filters(i).a);
+grid on;
+title([num2str(i),' - ',filters(i).label],'Interpreter','none');
 end;
 
 %% do calculations.
@@ -101,29 +121,37 @@ figure(2); clf;
 subplot(221); hold on; grid on;
 title('JAWs excitation, cleanup+dichroic');
 
-wl=linspace(300,900,100);
+wl=linspace(300,900,1000);
+
+
+f_led=2;
+a_led=interp1(leds(f_led).wl,leds(f_led).a,wl);
 
 a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
 f_cleanup=5;
 t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).^1;
 plot(wl,a_jaws,'r');
-
 plot(wl,t_cleanup,'b');
 
 
-f_dichroic=6;
+f_dichroic=3;
 t_dichroic=interp1(filters(f_dichroic).wl,filters(f_dichroic).a,wl);
-jaws_e=a_jaws.*t_cleanup.*(1-t_dichroic);
+jaws_e=a_jaws.*t_cleanup.*(1-t_dichroic).*a_led;
 jaws_e(isnan(jaws_e))=0;
 plot(wl,t_dichroic,'b--');
 
 text(700,0.5,num2str(sum(jaws_e)./sum(a_jaws)));
 
-f_block=3;
+f_block=9; % 9 is better than 8
 t_block=interp1(filters(f_block).wl,filters(f_block).a,wl).^1;
+
+
 plot(wl,t_block,'b');
 plot(wl,jaws_e,'k','LineWidth',1.5);
-legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs efficiency');
+
+plot(wl,a_led,'color',[.8,.6,.2]);
+
+legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs efficiency','LED');
 
 subplot(222); 
 semilogy(wl,t_cleanup.*t_dichroic.*t_block,'k');
@@ -131,9 +159,12 @@ hold on;
 semilogy(wl,t_cleanup,'b');
 semilogy(wl,t_dichroic,'b--');
 semilogy(wl,t_block,'b');
+semilogy(wl,a_led,'color',[.8,.6,.2]);
+semilogy(wl,t_cleanup.*t_dichroic.*t_block.*a_led,'r');
+
 title('OD block of light source to PMT');
 grid on;
-legend('total blocking','cleanup filter');
+legend('total blocking','cleanup','dichroic','blocking','LED trough block');
 
 
 subplot(223);  hold on;  grid on;
