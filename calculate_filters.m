@@ -13,7 +13,7 @@
 
 %% make Gcamp and Rcamp spectra
 I= imread('gcamp_spectrum.jpg');
-figure(1); clf; 
+figure(1); clf;
 plot(350,0);
 hold on;
 image([282,1202],[-0.26,1.08],flipud(I));
@@ -39,7 +39,7 @@ spectra(2).label='rcamp';
 
 %% make JAWs spectrum
 I= imread('jaws_spectrum.png');
-figure(1); clf; 
+figure(1); clf;
 plot(350,0);
 hold on;
 image([373,730],[-2.3,10.7],flipud(I));
@@ -58,7 +58,7 @@ spectra(3).label='jaws';
 
 %% make MRuby spectrum
 I= imread('mruby_spectrum.png');
-figure(1); clf; 
+figure(1); clf;
 plot(350,0);
 hold on;
 image([193,840],[-.16,1.16],flipud(I));
@@ -89,35 +89,35 @@ leds(2).a=M(:,2);
 leds(2).label='M625L3';
 
 %% load filter spectra
-filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01','FF614-SDi01','BSP01-633R','FF01-550_88'};
+filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01','FF614-SDi01','BSP01-633R','FF01-550_88','NF03-594E'};
 
 figure(3); clf; hold on;
 nrows=3;
 for i=1:numel(filternames)
     subplot(nrows,ceil(numel(filternames)/nrows),i);
     
-filename = [filternames{i},'_Spectrum.txt'];
-delimiter = '\t';
-startRow = 5;
-formatSpec = '%f%f%[^\n\r]';
-fileID = fopen(filename,'r');
-dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'EmptyValue', NaN, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
-fclose(fileID);
-
-if (min(dataArray{1})>300)
-    dataArray{1}=[300;dataArray{1}]';
-    dataArray{2}=[dataArray{2}(1);dataArray{2}]';
-end;
-filters(i).wl=dataArray{1};
-filters(i).a=dataArray{2};
-filters(i).label=filternames{i}; 
-semilogy(filters(i).wl,filters(i).a);
-grid on;
-title([num2str(i),' - ',filters(i).label],'Interpreter','none');
+    filename = [filternames{i},'_Spectrum.txt'];
+    delimiter = '\t';
+    startRow = 5;
+    formatSpec = '%f%f%[^\n\r]';
+    fileID = fopen(filename,'r');
+    dataArray = textscan(fileID, formatSpec, 'Delimiter', delimiter, 'EmptyValue', NaN, 'HeaderLines' ,startRow-1, 'ReturnOnError', false, 'EndOfLine', '\r\n');
+    fclose(fileID);
+    
+    if (min(dataArray{1})>300)
+        dataArray{1}=[300;dataArray{1}]';
+        dataArray{2}=[dataArray{2}(1);dataArray{2}]';
+    end;
+    filters(i).wl=dataArray{1};
+    filters(i).a=dataArray{2};
+    filters(i).label=filternames{i};
+    semilogy(filters(i).wl,filters(i).a);
+    grid on;
+    title([num2str(i),' - ',filters(i).label],'Interpreter','none');
 end;
 
 %% do calculations.
-figure(2); clf; 
+figure(2); clf;
 subplot(221); hold on; grid on;
 title('JAWs excitation, cleanup+dichroic');
 
@@ -129,8 +129,14 @@ a_led=interp1(leds(f_led).wl,leds(f_led).a,wl);
 
 a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
 f_cleanup=5;
+
 fprintf('cleanup: %s\n', filters(f_cleanup).label)
 t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).^1;
+
+if 0
+    f_cleanup_b=10; % throw in another stop line filter?
+    t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).*interp1(filters(f_cleanup_b).wl,filters(f_cleanup_b).a,wl);
+end;
 plot(wl,a_jaws,'r');
 plot(wl,t_cleanup,'b');
 
@@ -156,7 +162,7 @@ plot(wl,a_led,'color',[.8,.6,.2]);
 ylabel('log attenuation')
 legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs efficiency','LED');
 
-subplot(222); 
+subplot(222);
 semilogy(wl,t_cleanup,'b');
 hold on;
 semilogy(wl,t_block,'b');
