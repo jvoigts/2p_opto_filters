@@ -129,12 +129,14 @@ a_led=interp1(leds(f_led).wl,leds(f_led).a,wl);
 
 a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
 f_cleanup=5;
+fprintf('cleanup: %s\n', filters(f_cleanup).label)
 t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).^1;
 plot(wl,a_jaws,'r');
 plot(wl,t_cleanup,'b');
 
 
 f_dichroic=3;
+fprintf('dichroic: %s\n', filters(f_dichroic).label)
 t_dichroic=interp1(filters(f_dichroic).wl,filters(f_dichroic).a,wl);
 jaws_e=a_jaws.*t_cleanup.*(1-t_dichroic).*a_led;
 jaws_e(isnan(jaws_e))=0;
@@ -143,27 +145,32 @@ plot(wl,t_dichroic,'b--');
 text(700,0.5,num2str(sum(jaws_e)./sum(a_jaws)));
 
 f_block=9; % 9 is better than 8
-t_block=interp1(filters(f_block).wl,filters(f_block).a,wl).^1;
+fprintf('blocking: %s\n', filters(f_block).label)
+t_block=interp1(filters(f_block).wl,filters(f_block).a,wl).^4;
 
 
 plot(wl,t_block,'b');
 plot(wl,jaws_e,'k','LineWidth',1.5);
 
 plot(wl,a_led,'color',[.8,.6,.2]);
-
+ylabel('log attenuation')
 legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs efficiency','LED');
 
 subplot(222); 
-semilogy(wl,t_cleanup.*t_dichroic.*t_block,'k');
-hold on;
 semilogy(wl,t_cleanup,'b');
+hold on;
+
 semilogy(wl,t_dichroic,'b--');
 semilogy(wl,t_block,'b');
-sem(wl,a_led,'color',[.8,.6,.2]);
-title('OD block of light source to PMT');
-grid on;
-legend('total blocking','cleanup','dichroic','blocking');
+semilogy(wl,a_led,'color',[.8,.3,.2]);
+semilogy(wl,t_cleanup.*t_dichroic.*t_block,'k','LineWidth',2);
+semilogy(wl,t_cleanup.*t_dichroic.*t_block.*a_led,'r');
 
+
+grid on;
+legend({['cleanup ',filters(f_cleanup).label],['blocking ',filters(f_block).label],['dichroic ',filters(f_dichroic).label],'LED spectrum','total blocking','LED trough block'},'Interpreter','none');
+title('OD block of light source to PMT','Interpreter','none');
+ylabel('log attenuation')
 
 subplot(223);  hold on;  grid on;
 title('gcamp trough blocking & dichroic');
@@ -171,19 +178,21 @@ a_gcamp=interp1(spectra(1).wl,spectra(1).a,wl);
 plot(wl,a_gcamp,'r');
 gcamp_e=a_gcamp.*t_block.*t_dichroic;
 gcamp_e(isnan(gcamp_e))=0;
-plot(wl,gcamp_e,'k','LineWidth',1.5);
+plot(wl,gcamp_e,'g','LineWidth',1.5);
 plot(wl,t_block,'b');
 plot(wl,t_dichroic,'b--');
-text(700,0.5,num2str(sum(gcamp_e)./sum(a_gcamp)));
+text(700,0.5,[num2str(sum(gcamp_e)./sum(a_gcamp)),' gcamp attn.']);
 
 legend('GCaMP spectrum','GCaMP efficiency','blocking filter','dichroic');
+ylabel('log attenuation')
 
 subplot(224);  hold on;  grid on;
 title('rcamp trough blocking & dichroic');
 a_rcamp=interp1(spectra(2).wl,spectra(2).a,wl);
 a_mruby=interp1(spectra(4).wl,spectra(4).a,wl);
-plot(wl,a_rcamp,'r--');
 plot(wl,a_mruby,'r');
+plot(wl,a_rcamp,'r--');
+
 
 rcamp_e=a_rcamp.*t_block.*t_dichroic;
 rcamp_e(isnan(rcamp_e))=0;
@@ -191,17 +200,17 @@ rcamp_e(isnan(rcamp_e))=0;
 mruby_e=a_mruby.*t_block.*t_dichroic;
 mruby_e(isnan(mruby_e))=0;
 
-
-plot(wl,rcamp_e,'k--','LineWidth',1.5);
 plot(wl,mruby_e,'k','LineWidth',1.5);
+plot(wl,rcamp_e,'k--','LineWidth',1.5);
+
 
 plot(wl,t_block,'b');
 plot(wl,t_dichroic,'b--');
-text(700,0.4,num2str(sum(rcamp_e)./sum(a_rcamp)));
-text(700,0.3,num2str(sum(mruby_e)./sum(a_mruby)));
-plot(wl,jaws_e,'r','LineWidth',1.5);
-legend('Mruby spectrum','RCaMP spectrum','mRuby efficiency','RCaMP efficiency','blocking filter','dichroic','JAWs efficiency');
-
+text(700,0.4,[num2str(sum(rcamp_e)./sum(a_rcamp)),' rcamp attn.']);
+text(700,0.3,[num2str(sum(mruby_e)./sum(a_mruby)),' mRubyattn.']);
+%plot(wl,jaws_e,'r','LineWidth',1.5);
+legend('Mruby spectrum','RCaMP spectrum','mRuby efficiency','RCaMP efficiency','blocking filter','dichroic');
+ylabel('log attenuation')
 saveas(gcf,'filter_overview.png')
 
 
