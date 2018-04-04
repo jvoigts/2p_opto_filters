@@ -131,7 +131,7 @@ a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
 f_cleanup=5;
 t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl);
 
-if 0
+if 1
 f_cleanup_b=10; % throw in another stop line filter?
 t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).*interp1(filters(f_cleanup_b).wl,filters(f_cleanup_b).a,wl);
 end;
