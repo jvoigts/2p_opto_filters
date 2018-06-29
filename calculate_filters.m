@@ -12,6 +12,8 @@
 
 
 %% make Gcamp and Rcamp spectra
+set(0,'DefaultFigureWindowStyle','docked');
+
 I= imread('gcamp_spectrum.jpg');
 figure(1); clf;
 plot(350,0);
@@ -88,6 +90,16 @@ leds(2).wl=M(:,1);
 leds(2).a=M(:,2);
 leds(2).label='M625L3';
 
+
+
+
+leds(3).wl=linspace(0,800,800);
+leds(3).a=normpdf(leds(3).wl,633,3);
+leds(3).a=leds(3).a./max(leds(3).a);
+leds(3).label='HL63163DG'; % thorlabs part # for 633 nm, 100 mW, Ø5.6 mm, G Pin Code, Laser Diode 
+
+
+
 %% load filter spectra
 filternames={'BLP01-633R','FF01-575_59','FF01-612_SP','FF01-640_20','FF01-640_40','FF611-SDi01','FF614-SDi01','BSP01-633R','FF01-550_88','NF03-594E'};
 
@@ -118,13 +130,11 @@ end;
 
 %% do calculations.
 figure(2); clf;
-subplot(221); hold on; grid on;
-title('JAWs excitation, cleanup+dichroic');
 
-wl=linspace(300,900,1000);
+wl=linspace(300,900,2000);
 
-
-f_led=2;
+disp(' ');
+f_led=3;
 a_led=interp1(leds(f_led).wl,leds(f_led).a,wl);
 
 a_jaws=interp1(spectra(3).wl,spectra(3).a,wl);
@@ -133,21 +143,22 @@ f_cleanup=5;
 fprintf('cleanup: %s\n', filters(f_cleanup).label)
 t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).^1;
 
-<<<<<<< HEAD
-if 1
-f_cleanup_b=10; % throw in another stop line filter?
-t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).*interp1(filters(f_cleanup_b).wl,filters(f_cleanup_b).a,wl);
-=======
+t_cleanup(:)=1;  % we dont need a cleanup filter for the laser diode, only for LEDs
+
 if 0
     f_cleanup_b=10; % throw in another stop line filter?
     t_cleanup=interp1(filters(f_cleanup).wl,filters(f_cleanup).a,wl).*interp1(filters(f_cleanup_b).wl,filters(f_cleanup_b).a,wl);
->>>>>>> 3612420fc12b11c124485802185b1ef593192dac
 end;
+
+
+% ------ plot jaws excitation overlap with exc. light, and filters
+subplot(221); hold on; grid on;
+title('JAWs excitation, cleanup+dichroic');
 plot(wl,a_jaws,'r');
 plot(wl,t_cleanup,'b');
 
 
-f_dichroic=3;
+f_dichroic=6;
 fprintf('dichroic: %s\n', filters(f_dichroic).label)
 t_dichroic=interp1(filters(f_dichroic).wl,filters(f_dichroic).a,wl);
 jaws_e=a_jaws.*t_cleanup.*(1-t_dichroic).*a_led;
@@ -168,6 +179,9 @@ plot(wl,a_led,'color',[.8,.6,.2]);
 ylabel('log attenuation')
 legend('JAWs spectrum','cleanup filter','dichroic','blocking filter','JAWs efficiency','LED');
 
+
+
+% ------ plot total block from light source -> PMT
 subplot(222);
 semilogy(wl,t_cleanup,'b');
 hold on;
@@ -184,6 +198,11 @@ legend({['cleanup ',filters(f_cleanup).label],['blocking ',filters(f_block).labe
 title('OD block of light source to PMT','Interpreter','none');
 ylabel('log attenuation')
 
+ylim([10e-20 1]);
+
+
+
+% ------ plot gcamp trough block and dichroic
 subplot(223);  hold on;  grid on;
 title('gcamp trough blocking & dichroic');
 a_gcamp=interp1(spectra(1).wl,spectra(1).a,wl);
@@ -198,6 +217,8 @@ text(700,0.5,[num2str(sum(gcamp_e)./sum(a_gcamp)),' gcamp attn.']);
 legend('GCaMP spectrum','GCaMP efficiency','blocking filter','dichroic');
 ylabel('log attenuation')
 
+
+% ------ plot rcamp trough block and dichroic
 subplot(224);  hold on;  grid on;
 title('rcamp trough blocking & dichroic');
 a_rcamp=interp1(spectra(2).wl,spectra(2).a,wl);
@@ -223,7 +244,7 @@ text(700,0.3,[num2str(sum(mruby_e)./sum(a_mruby)),' mRubyattn.']);
 %plot(wl,jaws_e,'r','LineWidth',1.5);
 legend('Mruby spectrum','RCaMP spectrum','mRuby efficiency','RCaMP efficiency','blocking filter','dichroic');
 ylabel('log attenuation')
-saveas(gcf,'filter_overview.png')
+%saveas(gcf,'filter_overview.png')
 
 
 
